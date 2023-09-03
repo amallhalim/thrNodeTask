@@ -1,9 +1,21 @@
 const express = require("express");
 const multer = require("multer");
+const cors = require("cors");
+
 const app = express();
 const admin = require("firebase-admin");
 const credenlists = require("./key.json");
 const axios = require("axios");
+
+const storage = multer.diskStorage({
+  destination: (req, file, callback) => {
+    callback(null, "./uploads/");
+  },
+  filename: (req, file, callback) => {
+    callback(null, file.originalname);
+  },
+});
+const upload = multer({ storage });
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
@@ -20,20 +32,20 @@ app.use(express.urlencoded({ extended: true }));
 
 const db = admin.firestore(); // Initialize Firestore here
 
-//add new user
-app.post("/addUser", async (req, res) => {
-  try {
-    const userJson = {
-      email: req.body.email,
-      name: req.body.name,
-    };
-    const response = await db.collection("users").add(userJson);
-    console.log(response);
-    res.send(response);
-  } catch (error) {
-    res.send(error);
-  }
-});
+// //add new user
+// app.post("/addUser", async (req, res) => {
+//   try {
+//     const userJson = {
+//       email: req.body.email,
+//       name: req.body.name,
+//     };
+//     const response = await db.collection("users").add(userJson);
+//     console.log(response);
+//     res.send(response);
+//   } catch (error) {
+//     res.send(error);
+//   }
+// });
 //get All User
 app.get("/user", async (req, res) => {
   try {
@@ -92,3 +104,27 @@ app.post("/Shortening", async (req, res) => {
 });
 
 // Get a reference to the storage service, which is used to create references in your storage bucket
+
+//add new user
+app.post("/addfile", upload.single("image"), async (req, res) => {
+  try {
+    const image = req.file;
+
+    const data = {
+      name: image.originalname,
+      imageURL: image.path,
+    };
+    const response = await db.collection("AllFiles").add(data);
+    // console.log(response);
+    res.send("done");
+  } catch (error) {
+    res.send(error);
+  }
+});
+
+
+
+
+
+
+
