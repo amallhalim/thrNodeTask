@@ -32,27 +32,27 @@ app.use(express.urlencoded({ extended: true }));
 
 const db = admin.firestore(); // Initialize Firestore here
 
-// //add new user
-// app.post("/addUser", async (req, res) => {
-//   try {
-//     const userJson = {
-//       email: req.body.email,
-//       name: req.body.name,
-//     };
-//     const response = await db.collection("users").add(userJson);
-//     console.log(response);
-//     res.send(response);
-//   } catch (error) {
-//     res.send(error);
-//   }
-// });
+//add new user
+app.post("/addUser", async (req, res) => {
+  try {
+    const userJson = {
+      email: req.body.email,
+      name: req.body.name,
+    };
+    const response = await db.collection("users").add(userJson);
+    // console.log(response);
+    res.send(response);
+  } catch (error) {
+    res.send(error);
+  }
+});
 //get All User
 app.get("/user", async (req, res) => {
   try {
     console.log(req.body);
     const usersRef = db.collection("users");
     const response = await usersRef.get();
-    console.log(response);
+    // console.log(response);
     let responsArr = [];
     response.forEach(doc => {
       responsArr.push();
@@ -121,10 +121,64 @@ app.post("/addfile", upload.single("image"), async (req, res) => {
     res.send(error);
   }
 });
+//update files
+app.put("/updateFiles/:id", upload.single("image"), async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    console.log("fileId", fileId);
+    
+    const updatedFileData = {
+      image: req.file.path, // Assuming the uploaded file is stored in the "path" property of the "req.file" object
+    }; console.log("updatedFileData", updatedFileData);
+    
+        const fileRef = db.collection("AllFiles").doc(fileId);
+        const fileSnapshot = await fileRef.get();
 
+        if (!fileSnapshot.exists) {
+          return res.status(404).send("File not found");
+        }
+      await fileRef.update(updatedFileData);
+      res.status(200).send("File updated successfully");
+  } catch (error) {
+    res.send(error);
+    console.log(error);
+  }
+});
+app.delete("/deletefile/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    // console.log(id);
+    const fileRef = db.collection("AllFiles").doc(id);
+    const file = await fileRef.get();
+      console.log(file);
+    if (!file.exists) {
+      res.status(404).send("File not found");
+      return;
+    }
+    // Delete the file from storage
+    const imageURL = file.data().imageURL;
+    await admin.storage().bucket().file(imageURL).delete();
+    // Delete the file document from Firestore
+    await fileRef.delete();
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
 
+//get All files
+app.get("/getAllFiles", async (req, res) => {
+  try {
+    const files = await db.collection("AllFiles").get();
+    let allFiles = [];
 
+    files.forEach(doc => {
+      allFiles.push();
+      allFiles.push(doc.data());
+    });
 
-
-
+    res.json(allFiles);
+  } catch (error) {
+    res.send(error);
+  }
+});
 
