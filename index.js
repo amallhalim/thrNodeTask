@@ -57,26 +57,33 @@ app.put("/updateFiles/:id", upload.single("image"), async (req, res) => {
     const fileId = req.params.id;
     console.log("fileId", fileId);
     // Assuming the uploaded file is stored
-    const updatedFileData = {
-      name: req.file.originalname,
-      image: req.file.path,
-    };
-    console.log("updatedFileData", updatedFileData);
+    const fileData = req.file;
+    console.log("fileData", fileData);
+    if (!fileData) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
 
-    const fileRef = db.collection("AllFiles").doc(fileId);
-    // const fileSnapshot = await fileRef.exists();
+    const fileDoc = await db.collection("AllFiles").doc(fileId).get();
 
-    // if (!fileSnapshot.exists) {
-    //   return res.status(404).send("File not found");
-    // }
-    await fileRef.update(updatedFileData);
-    res.status(200).send("File updated successfully");
+    if (!fileDoc.exists) {
+      res
+        .status(404)
+        .json({ message: "  File that you want to update it  not found" });
+      return;
+    }
+
+    // Update the file data in the database
+    await db
+      .collection("AllFiles")
+      .doc(fileId)
+      .update({ imageURL: fileData.path, name: fileData.originalname });
+
+    res.json({ message: "File updated successfully" });
   } catch (error) {
     res.send(error);
     console.log(error);
   }
 });
-
 
 //get All files
 app.get("/getAllFiles", async (req, res) => {
@@ -108,22 +115,6 @@ app.get("/getSingleFile", async (req, res) => {
   const file = fileSnapshot.data();
   res.send(file);
 });
-
-// API for shorting link
-app.post("/ShorteningURL", async (req, res) => {
-  try {
-    const LongUrl = ` https://api.shrtco.de/v2/shorten?url=${req.query.url}/u/0/project/thenodeproject-1dc6c/firestore/data/~2Fimages~2FT4aSvZ7w4ne5yCHvYqDx/very/long/link.html`;
-    // Make an Axios request to the shortening service
-    const axiosresponse = await axios.post(LongUrl);
-    // Save the shortened URL in the database
-    const new_short_link = axiosresponse.data.result.full_short_link;
-    await db.collection("Urls").add({ new_short_link });
-    res.send(new_short_link);
-  } catch (error) {
-    res.send(error);
-  }
-});
-
 //delete file
 app.get("/deletefile/:id", async (req, res) => {
   try {
@@ -143,3 +134,19 @@ app.get("/deletefile/:id", async (req, res) => {
     res.status(500).send(error);
   }
 });
+// ---------------------------------------------------
+// API for shorting link
+app.post("/ShorteningURL", async (req, res) => {
+  try {
+    const LongUrl = ` https://api.shrtco.de/v2/shorten?url=${req.query.url}/u/0/project/thenodeproject-1dc6c/firestore/data/~2Fimages~2FT4aSvZ7w4ne5yCHvYqDx/very/long/link.html`;
+    // Make an Axios request to the shortening service
+    const axiosresponse = await axios.post(LongUrl);
+    // Save the shortened URL in the database
+    const new_short_link = axiosresponse.data.result.full_short_link;
+    await db.collection("Urls").add({ new_short_link });
+    res.send(new_short_link);
+  } catch (error) {
+    res.send(error);
+  }
+});
+
