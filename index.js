@@ -33,27 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const db = admin.firestore(); // Initialize Firestore here
 
-//update
-app.post("/update", async (req, res) => {
-  try {
-    const id = req.body.id;
-    const newName = "hello world ---";
-    const usersRef = db.collection("users").doc(id).update({ name: newName });
-    res.send(usersRef);
-  } catch (error) {
-    res.send(error);
-    console.log(error);
-  }
-});
-//delete
-app.delete("/delete", async (req, res) => {
-  try {
-    const response = await db.collection("users").doc(req.params.id).delete();
-    res.send(response);
-  } catch (error) {
-    res.send(error);
-  }
-});
+
 
 //add new file
 app.post("/addfile", upload.single("image"), async (req, res) => {
@@ -96,30 +76,7 @@ app.put("/updateFiles/:id", upload.single("image"), async (req, res) => {
     console.log(error);
   }
 });
-//delete file
-app.delete("/deletefile", async (req, res) => {
-  try {
-    const id = req.body.id;
-    // console.log(id);
-    const fileRef = db.collection("AllFiles").doc(id);
-    const file = await fileRef.get();
-    // console.log(file);
-    if (!file.exists) {
-      res.status(404).send("File not found");
-      return;
-    }
-    // Delete the file from storage
-    const imageURL = file.data().imageURL;
-    const bucket = admin.storage().bucket();
-    await bucket.file(imageURL).delete();
-    console.log("imageURL", imageURL);
-    // Delete the file document from Firestore
-    await fileRef.delete();
-    res.status(500).send("done");
-  } catch (error) {
-    res.status(500).send(error);
-  }
-});
+
 
 //get All files
 app.get("/getAllFiles", async (req, res) => {
@@ -160,9 +117,29 @@ app.post("/ShorteningURL", async (req, res) => {
     const axiosresponse = await axios.post(LongUrl);
     // Save the shortened URL in the database
     const new_short_link = axiosresponse.data.result.full_short_link;
-    const response = await db.collection("Urls").add({ new_short_link });
+    await db.collection("Urls").add({ new_short_link });
     res.send(new_short_link);
   } catch (error) {
     res.send(error);
+  }
+});
+
+//delete file
+app.get("/deletefile/:id", async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    const fileDoc = await db.collection("AllFiles").doc(fileId).get();
+
+    if (!fileDoc.exists) {
+      res.status(404).json({ message: "File not found" });
+      return;
+    }
+
+    const fileData = fileDoc.data();
+    await db.collection("AllFiles").doc(fileId).delete();
+
+    res.json(fileData);
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
