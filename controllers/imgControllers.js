@@ -32,7 +32,7 @@ exports.addFile = async (req, res) => {
       res.send("File added successfully");
     });
   } catch (error) {
-    res.status(500).send(error);
+    next(error);
   }
 };
 //update files
@@ -65,8 +65,7 @@ exports.updateFiles = async (req, res) => {
       res.json({ message: "File updated successfully" });
     });
   } catch (error) {
-    res.send(error);
-    console.log(error);
+    next(error);
   }
 };
 //get All files
@@ -82,7 +81,7 @@ exports.getAllFiles = async (req, res) => {
 
     res.json(allFiles);
   } catch (error) {
-    res.send(error);
+    next(error);
   }
 };
 //get getSingleFile
@@ -115,6 +114,6 @@ exports.deletefile = async (req, res) => {
 
     res.json("delete file");
   } catch (error) {
-    res.status(500).send(error);
+    next(error);
   }
 };

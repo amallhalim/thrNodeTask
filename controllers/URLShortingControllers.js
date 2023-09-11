@@ -14,6 +14,6 @@ exports.shortUrl = async (req, res) => {
 
     res.send(new_short_link);
   } catch (error) {
-    res.send(error);
+             next(error);
   }
 };

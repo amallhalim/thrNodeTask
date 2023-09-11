@@ -1,6 +1,7 @@
 const cors = require("cors");
 const express = require("express");
 const credenlists = require("./key.json");
+const dotenv = require("dotenv").config();
 
 const app = express();
 
