@@ -13,7 +13,7 @@ const { db } = require("../firebase");
 const upload = multer({ storage });
 
 //add new file
-exports.addFile = async (req, res) => {
+exports.addFile = async (req, res, next) => {
   try {
     upload.single("image")(req, res, async err => {
       if (err) {
@@ -36,7 +36,7 @@ exports.addFile = async (req, res) => {
   }
 };
 //update files
-exports.updateFiles = async (req, res) => {
+exports.updateFiles = async (req, res, next) => {
   const fileId = req.params.id;
   try {
     upload.single("image")(req, res, async err => {
@@ -69,7 +69,7 @@ exports.updateFiles = async (req, res) => {
   }
 };
 //get All files
-exports.getAllFiles = async (req, res) => {
+exports.getAllFiles = async (req, res, next) => {
   try {
     const files = await db.collection("AllFiles").get();
     let allFiles = [];
@@ -85,7 +85,7 @@ exports.getAllFiles = async (req, res) => {
   }
 };
 //get getSingleFile
-exports.getSingleFile = async (req, res) => {
+exports.getSingleFile = async (req, res, next) => {
   const fileId = req.params.id;
 
   const fileRef = db.collection("AllFiles").doc(fileId);
@@ -99,7 +99,7 @@ exports.getSingleFile = async (req, res) => {
   res.send(file);
 };
 //delete file
-exports.deletefile = async (req, res) => {
+exports.deletefile = async (req, res, next) => {
   try {
     const fileId = req.params.id;
     const fileDoc = await db.collection("AllFiles").doc(fileId).get();
